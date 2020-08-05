@@ -13,6 +13,7 @@ import org.corfudb.universe.test.UniverseConfigurator;
 
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
@@ -51,6 +52,15 @@ public final class UfoUtils {
                 ManagedResources.class,
                 // TableOptions includes option to choose - Memory/Disk based corfu table.
                 TableOptions.builder().build());
+    }
+
+    public static void generateDataAndCommit(
+            int start, int end, String
+            tableName, TxBuilder tx, ManagedResources metadata, boolean isUpdate){
+
+        generateDataAndCommit(
+                start, end, tableName, new ArrayList<>(), new ArrayList<>(), tx, metadata, isUpdate
+        );
     }
 
     /**

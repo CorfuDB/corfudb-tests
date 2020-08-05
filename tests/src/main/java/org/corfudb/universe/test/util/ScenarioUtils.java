@@ -146,7 +146,7 @@ public class ScenarioUtils {
 
         while (clusterStatusReport.getClusterStatus() != ClusterStatus.STABLE) {
             clusterStatusReport = corfuClient.getManagementView().getClusterStatus();
-            waitUninterruptibly(Duration.ofSeconds(10));
+            waitUninterruptibly(Duration.ofSeconds(3));
         }
         assertThat(clusterStatusReport.getClusterStatus()).isEqualTo(ClusterStatus.STABLE);
     }

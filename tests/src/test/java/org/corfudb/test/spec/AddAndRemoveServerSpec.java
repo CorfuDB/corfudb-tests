@@ -60,7 +60,6 @@ public class AddAndRemoveServerSpec {
      * @param wf universe workflow
      * @throws Exception error
      */
-    @Test
     public void verifyAddAndRemoveNode(UniverseManager.UniverseWorkflow<Fixture<UniverseParams>> wf) throws Exception {
 
         CorfuCluster<Node, GroupParams<NodeParams>> corfuCluster = wf.getUniverse()

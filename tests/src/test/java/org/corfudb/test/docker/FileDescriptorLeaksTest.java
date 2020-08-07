@@ -5,6 +5,7 @@ import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.corfudb.runtime.collections.CorfuTable;
+import org.corfudb.runtime.view.Layout;
 import org.corfudb.test.AbstractCorfuUniverseTest;
 import org.corfudb.test.TestGroups;
 import org.corfudb.universe.UniverseManager.UniverseWorkflow;
@@ -20,11 +21,13 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.corfudb.universe.scenario.fixture.Fixtures.TestFixtureConst.DEFAULT_STREAM_NAME;
 import static org.corfudb.universe.test.util.ScenarioUtils.waitForLayoutChange;
+import static org.corfudb.universe.test.util.ScenarioUtils.waitForUnresponsiveServersChange;
 import static org.junit.jupiter.api.Assertions.fail;
 
 @Slf4j
@@ -48,11 +51,15 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
 
         long start = System.currentTimeMillis();
 
-        for (int i = 0; i < 1024; i++) {
-            System.out.println("next iteration: " + i);
-            table.put(String.valueOf(i), RandomStringUtils.randomAlphanumeric(1024 * 1024));
+        String payload = RandomStringUtils.randomAlphanumeric(50_000);
+
+        for (int i = 0; i < 30_001; i++) {
+            //System.out.println("next iteration: " + i);
+            table.put(String.valueOf(i), payload);
             long end = System.currentTimeMillis();
-            System.out.println("took: " + Duration.ofMillis(end - start));
+            if (i % 1000 == 0) {
+                System.out.println("took: " + Duration.ofMillis(end - start) + ", iteration: " + i);
+            }
         }
 
         long end = System.currentTimeMillis();
@@ -65,15 +72,27 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
         CorfuServer server2 = corfuCluster.getServerByIndex(2);
 
         for (int i = 0; i < 10_000; i++) {
-            // Disconnect server0 with server1 and server2
+            System.out.println("Disconnect server0 with server1 and server2");
             server0.disconnect(Arrays.asList(server1, server2));
             waitForLayoutChange(layout -> layout.getUnresponsiveServers()
                     .equals(Collections.singletonList(server0.getEndpoint())), corfuClient);
 
-            TimeUnit.SECONDS.sleep(5);
-            System.out.println("reconnect. iteration: " + i);
-            server0.reconnect(Arrays.asList(server1, server2));
-            TimeUnit.SECONDS.sleep(50);
+            TimeUnit.SECONDS.sleep(3);
+            System.out.println("reconnect. iteration: " + i + ", sleep 30 sec");
+            server0.reconnect();
+
+            waitForUnresponsiveServersChange(size -> size == 0, corfuClient);
+
+            TimeUnit.SECONDS.sleep(1);
+
+            Layout layout = corfuClient.getLayout();
+            if (!layout.getUnresponsiveServers().isEmpty()) {
+                fail("yay: " + layout.getUnresponsiveServers());
+            }
+
+            layout = corfuClient.getLayout();
+            System.out.println("timeout some sec. Unresponsive: "+ layout.getUnresponsiveServers() + ", Layout: " + corfuClient.getLayout());
+            TimeUnit.SECONDS.sleep(new Random().nextInt(20));
 
             check(server0);
         }
@@ -114,7 +133,7 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
             FileState state = FileState.OPEN;
             if (pathAndState.length > 1) {
                 String stateStr = pathAndState[pathAndState.length - 1].trim();
-                if (stateStr.equals("(deleted)")){
+                if (stateStr.equals("(deleted)")) {
                     state = FileState.DELETED;
                 }
             }

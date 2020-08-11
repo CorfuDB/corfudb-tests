@@ -65,8 +65,6 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
         long end = System.currentTimeMillis();
         System.out.println("!!!!!!!!!!! took: " + Duration.ofMillis(end - start));
 
-        /////////////////////////////////////////////////
-        //Should fail two links and then heal
         CorfuServer server0 = corfuCluster.getServerByIndex(0);
         CorfuServer server1 = corfuCluster.getServerByIndex(1);
         CorfuServer server2 = corfuCluster.getServerByIndex(2);
@@ -94,11 +92,11 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
             System.out.println("timeout some sec. Unresponsive: "+ layout.getUnresponsiveServers() + ", Layout: " + corfuClient.getLayout());
             TimeUnit.SECONDS.sleep(new Random().nextInt(20));
 
-            check(server0);
+            check(server0, wf);
         }
     }
 
-    public void check(CorfuServer server) {
+    public void check(CorfuServer server, UniverseWorkflow<Fixture<UniverseParams>> wf) {
         String[] lsofOutput = server.execute("lsof").split("\\r?\\n");
         List<LsofRecord> lsOfList = Arrays
                 .stream(lsofOutput)
@@ -110,6 +108,8 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
             boolean isCorfuLogFile = record.path.startsWith("/app/" + server.getParams().getName() + "/db/corfu/log");
 
             if (isCorfuLogFile && isDeleted) {
+                log.error("File descriptor leaks has been detected: {}", record);
+                wf.shutdown();
                 fail("File descriptor leaks has been detected: " + record);
             }
         }

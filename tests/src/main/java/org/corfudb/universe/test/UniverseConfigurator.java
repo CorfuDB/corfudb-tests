@@ -8,6 +8,7 @@ import org.corfudb.universe.scenario.fixture.Fixtures.UniverseFixture;
 import org.corfudb.universe.scenario.fixture.Fixtures.VmUniverseFixture;
 import org.corfudb.universe.test.util.PropertiesLoader;
 import org.corfudb.universe.universe.Universe.UniverseMode;
+import org.slf4j.event.Level;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,6 +42,7 @@ public class UniverseConfigurator {
         fixture.getServer().dockerImage("corfudb/corfu-server");
         fixture.getCluster().serverVersion(getServerVersion());
         fixture.getLogging().enabled(true);
+        fixture.getServer().logLevel(Level.TRACE);
 
         Path universeDirectory = Paths.get(FilenameUtils.getName(props.getProperty("corfu.server.jar")));
         fixture.getServer().universeDirectory(universeDirectory);

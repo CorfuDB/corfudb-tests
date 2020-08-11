@@ -53,6 +53,7 @@ dependencies {
     implementation "org.ehcache:ehcache:${ehcacheVersion}"
 
     implementation "org.assertj:assertj-core:${assertjVersion}"
+    implementation "com.alibaba:fastjson:1.2.73"
 
     compileOnly "org.projectlombok:lombok:${lombokVersion}"
     annotationProcessor "org.projectlombok:lombok:${lombokVersion}"

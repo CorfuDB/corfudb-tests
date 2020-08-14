@@ -42,7 +42,7 @@ public class UniverseConfigurator {
         fixture.getServer().dockerImage("corfudb/corfu-server");
         fixture.getCluster().serverVersion(getServerVersion());
         fixture.getLogging().enabled(true);
-        fixture.getServer().logLevel(Level.TRACE);
+        fixture.getServer().logLevel(Level.DEBUG);
 
         Path universeDirectory = Paths.get(FilenameUtils.getName(props.getProperty("corfu.server.jar")));
         fixture.getServer().universeDirectory(universeDirectory);

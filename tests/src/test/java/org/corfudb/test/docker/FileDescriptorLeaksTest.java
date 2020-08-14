@@ -14,6 +14,7 @@ import org.corfudb.universe.node.client.CorfuClient;
 import org.corfudb.universe.node.server.CorfuServer;
 import org.corfudb.universe.scenario.fixture.Fixture;
 import org.corfudb.universe.universe.UniverseParams;
+import org.corfudb.util.Sleep;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -22,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -69,7 +71,17 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
         CorfuServer server1 = corfuCluster.getServerByIndex(1);
         CorfuServer server2 = corfuCluster.getServerByIndex(2);
 
-        for (int i = 0; i < 10_000; i++) {
+        CompletableFuture<Void> cf = CompletableFuture.runAsync(()->{
+            int counter = 30_002;
+            while (true) {
+                table.put(String.valueOf(counter), payload);
+                table.get(new Random().nextInt(counter));
+                counter++;
+                Sleep.sleepUninterruptibly(Duration.ofMillis(500));
+            }
+        });
+
+        for (int i = 0; i < 50; i++) {
             System.out.println("Disconnect server0 with server1 and server2");
             server0.disconnect(Arrays.asList(server1, server2));
             waitForLayoutChange(layout -> layout.getUnresponsiveServers()
@@ -94,6 +106,9 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
 
             check(server0, wf);
         }
+
+        cf.cancel(true);
+        wf.shutdown();
     }
 
     public void check(CorfuServer server, UniverseWorkflow<Fixture<UniverseParams>> wf) {

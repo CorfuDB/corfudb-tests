@@ -75,7 +75,7 @@ public class FileDescriptorLeaksTest extends AbstractCorfuUniverseTest {
             int counter = 30_002;
             while (true) {
                 table.put(String.valueOf(counter), payload);
-                table.get(new Random().nextInt(counter));
+                table.get(String.valueOf(new Random().nextInt(counter)));
                 counter++;
                 Sleep.sleepUninterruptibly(Duration.ofMillis(500));
             }

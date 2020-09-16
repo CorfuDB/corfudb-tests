@@ -3,11 +3,9 @@ package org.corfudb.universe.test;
 import lombok.Builder;
 import lombok.Builder.Default;
 import org.apache.commons.io.FilenameUtils;
-import org.corfudb.universe.UniverseManager;
 import org.corfudb.universe.scenario.fixture.Fixtures.UniverseFixture;
 import org.corfudb.universe.scenario.fixture.Fixtures.VmUniverseFixture;
 import org.corfudb.universe.test.util.PropertiesLoader;
-import org.corfudb.universe.universe.Universe.UniverseMode;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

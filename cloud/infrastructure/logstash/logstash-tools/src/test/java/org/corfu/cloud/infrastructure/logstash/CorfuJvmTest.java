@@ -16,6 +16,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.time.Duration;
 import java.util.List;
 
@@ -24,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class CorfuJvmTest {
+    private static final Logger logger = LoggerFactory.getLogger(CorfuJvmTest.class);
 
     private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
@@ -36,7 +38,11 @@ public class CorfuJvmTest {
     public void test() throws Exception {
 
         Files.deleteIfExists(jvmConfig.outputFile);
-        jvmConfig.outputDir.toFile().mkdirs();
+        Files.createDirectories(
+                jvmConfig.outputDir,
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwxrwxrwx"))
+        );
+        logger.info("Output dir created: {}", jvmConfig.outputDir);
 
         try (GenericContainer<?> logstash = new GenericContainer<>(jvmConfig.logstashCfg.logstashImage)) {
 
@@ -50,7 +56,7 @@ public class CorfuJvmTest {
             logstash
                     .withEnv("SERVER", "127.0.0.1")
                     //logstash output
-                    .withFileSystemBind("build/test-output", "/logstash-test-output", BindMode.READ_WRITE)
+                    .withFileSystemBind(jvmConfig.outputDir.toString(), "logstash-test-output", BindMode.READ_WRITE)
                     .withCommand("/bin/sh", "-c", "logstash < " + jvmConfig.jvmGcLog)
 
                     .waitingFor(Wait.forLogMessage(".*Logstash shut down.*", 1))

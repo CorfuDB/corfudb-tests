@@ -50,7 +50,7 @@ public class CorfuTest {
             logstash
                     .withEnv("SERVER", "127.0.0.1")
                     //logstash output
-                    .withFileSystemBind("build/test-output", "/logstash-test-output", BindMode.READ_WRITE)
+                    .withFileSystemBind("build/test-output", "logstash-test-output", BindMode.READ_WRITE)
                     .withCommand("/bin/sh", "-c", "logstash < " + corfuConfig.logFile)
 
                     .waitingFor(Wait.forLogMessage(".*Logstash shut down.*", 1))

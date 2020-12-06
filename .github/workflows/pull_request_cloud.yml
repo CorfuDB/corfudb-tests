@@ -1,0 +1,32 @@
+name: Pull Request Cloud
+
+on:
+  pull_request:
+    paths:
+    - 'cloud/**'
+    - '.github/workflows/pull_request_cloud.yml'
+
+jobs:
+  cloud_check:
+    name: Cloud checks
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 1.8
+
+    - name: Cache local Gradle repository
+      uses: actions/cache@v2
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Check cloud module
+      run: ./gradlew -p cloud/ check

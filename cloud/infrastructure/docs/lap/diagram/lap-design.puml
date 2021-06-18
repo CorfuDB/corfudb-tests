@@ -1,3 +1,5 @@
+@startuml
+
 User ->> IntegrationServer: Provide archive urls, and AggregationUnit name
 IntegrationServer ->> FileSystem: Download archives, unpack
 IntegrationServer ->> FileBeat : Start file beat
@@ -8,3 +10,5 @@ IntegrationServer ->> User: Operation completed
 User ->> Kibana: user request
 Kibana ->> ElasticSearch: queries
 Kibana ->> User: Visualization
+
+@enduml
